@@ -1,5 +1,6 @@
 package com.biomodd.entity;
 
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -7,9 +8,10 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.Sound;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.util.Log;
 
-import com.biomodd.client.handler.message.ClientMessageMaker;
 import com.biomodd.game.BiomoddGame;
+import com.biomodd.input.Controller;
 import com.biomodd.manager.ArtManager;
 import com.biomodd.manager.BlocksManager;
 import com.biomodd.manager.CollisionManager;
@@ -31,6 +33,14 @@ public class Player extends Entity{
 	private Image builderImage;
 	private Image terroristImage;
 	
+	private Rectangle canMoveBar;
+	private Rectangle canChangeBar;
+	
+	private Controller controller;
+	
+	private Color moveBarColor;
+	private Color changeBarColor;
+	
 	/**
 	 * The type of player
 	 */
@@ -47,7 +57,14 @@ public class Player extends Entity{
 		this.type = type;
 		builderImage = ArtManager.instance().getImage(EImgType.BUILDER);
 		terroristImage = ArtManager.instance().getImage(EImgType.TERRORIST);
-		this.type = BUILDER;
+		
+		setController(new Controller(Input.KEY_UP, Input.KEY_DOWN, Input.KEY_LEFT, Input.KEY_RIGHT, Input.KEY_X, Input.KEY_C));
+		canMoveBar = new Rectangle(x-9, y-13, 20,4);
+		canChangeBar = new Rectangle(x-9, y-15, 20,4);
+	}
+	
+	public void setController(Controller controller){
+		this.controller = controller;
 	}
 	
 	public long getTimeSinceTypeChange() {
@@ -80,11 +97,15 @@ public class Player extends Entity{
 
 	@Override
 	public void render(GameContainer gc, StateBasedGame sb, Graphics gr) {
-		if(getType() == Player.BUILDER){
-			builderImage.drawCentered(getXPos(), getYPos());
+		if(getType() == Player.BUILDER){			
+			builderImage.drawCentered(getXPos(), getYPos());			
 		}else{
 			terroristImage.drawCentered(getXPos(), getYPos());
-		}
+		}		
+		gr.setColor(changeBarColor);
+		gr.fill(canChangeBar);
+		gr.setColor(moveBarColor);
+		gr.fill(canMoveBar);
 	}
 
 	@Override
@@ -101,19 +122,19 @@ public class Player extends Entity{
 		BiomoddGame game = (BiomoddGame)sb;	
 		
 		boolean changedPosition = false;
-		if(in.isKeyDown(Input.KEY_UP) && playerY > 0){
+		if(in.isKeyDown(controller.UP_KEY) && playerY > 0){
 			playerY -= 3;
 			changedPosition = true;
-		}
-		if(in.isKeyDown(Input.KEY_DOWN) && playerY < gc.getHeight() - 5){
+		}		
+		if(in.isKeyDown(controller.DOWN_KEY) && playerY < gc.getHeight() - 5){
 			playerY += 3;
 			changedPosition = true;
 		}
-		if(in.isKeyDown(Input.KEY_RIGHT) && playerX < gc.getWidth() - 5){
+		if(in.isKeyDown(controller.RIGHT_KEY) && playerX < gc.getWidth() - 5){
 			playerX += 3;
 			changedPosition = true;
 		}
-		if(in.isKeyDown(Input.KEY_LEFT) && playerX > 12){
+		if(in.isKeyDown(controller.LEFT_KEY) && playerX > 12){
 			playerX -= 3;
 			changedPosition = true;
 		}		
@@ -127,8 +148,20 @@ public class Player extends Entity{
 			//game.getClient().send(ClientMessageMaker.createMovePkt(Integer.parseInt(id), this.getXPos(), this.getYPos()));
 		}
 		
+		//Update the bars
 		
-		if(in.isKeyPressed(Input.KEY_ENTER)){
+		moveBarColor = Color.white;
+		changeBarColor = Color.cyan;
+		
+		canMoveBar.setLocation(this.getXPos()-9, this.getYPos()-13);					
+		canChangeBar.setLocation(this.getXPos()-9, this.getYPos()-15);				
+		float widthMove = Math.min((float)timeSinceSkillMove/(float)GameConfig.instance().SKILL_MOVE,1) * 20;
+		float widthChange = Math.min((float)timeSinceTypeChange/(float)GameConfig.instance().TYPE_CHANGE,1) * 20;
+		canMoveBar.setWidth(widthMove);
+		canChangeBar.setWidth(widthChange);
+		
+		
+		if(in.isKeyPressed(controller.CHANGE_KEY)){
 			if(timeSinceTypeChange >= GameConfig.instance().TYPE_CHANGE){
 				if(getType() == Player.BUILDER){
 					setType(Player.TERRORIST);
@@ -137,10 +170,12 @@ public class Player extends Entity{
 				}
 				timeSinceTypeChange = 0;
 				//game.getClient().send(ClientMessageMaker.createChangeTypePkt(Integer.parseInt(id), getType()));
-			}						
+			}else{
+				changeBarColor = Color.red;
+			}
 		}
 		
-		if(in.isKeyPressed(Input.KEY_SPACE)){			
+		if(in.isKeyPressed(controller.DO_SKILL_KEY)){			
 			if(timeSinceSkillMove >= GameConfig.instance().SKILL_MOVE){
 				Long id = System.currentTimeMillis();
 				if(getType() == Player.BUILDER){
@@ -161,6 +196,8 @@ public class Player extends Entity{
 					timeSinceSkillMove = 0;
 				}
 				
+			}else{
+				moveBarColor = Color.red;
 			}
 		}
 		
