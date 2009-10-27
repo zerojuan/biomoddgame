@@ -11,6 +11,7 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
 import com.biomodd.game.BiomoddGame;
+import com.biomodd.game.GameplayState;
 import com.biomodd.input.Controller;
 import com.biomodd.manager.ArtManager;
 import com.biomodd.manager.BlocksManager;
@@ -144,6 +145,13 @@ public class Player extends Entity{
 			move(tempX,tempY);
 				
 		}
+		if(getType() == BUILDER){
+			if(!CollisionManager.instance().isCollideWithPlant(this, PlantsManager.instance().getPlantsGrid()) && !CollisionManager.instance().isInsideCircle(tempX, tempY)){
+				move(tempX,tempY);
+				Log.info("Can't move");
+			}
+		}
+		
 		if(changedPosition){				
 			//game.getClient().send(ClientMessageMaker.createMovePkt(Integer.parseInt(id), this.getXPos(), this.getYPos()));
 		}

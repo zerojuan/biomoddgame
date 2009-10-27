@@ -16,6 +16,7 @@ import com.biomodd.entity.PlantsGrid;
 import com.biomodd.entity.Territory;
 import com.biomodd.util.EImgType;
 import com.biomodd.util.GameConfig;
+import com.biomodd.util.TweetMessageFactory;
 
 public class PlantsManager extends EntityManager{
 
@@ -24,6 +25,8 @@ public class PlantsManager extends EntityManager{
 	private PlantsGrid plantsGrid;
 	
 	private long timeBeforeNextGrowth;
+	
+	private int marker;
 	
 	private PlantsManager(){
 		timeBeforeNextGrowth = GameConfig.instance().GROWTH_TIME;
@@ -61,6 +64,22 @@ public class PlantsManager extends EntityManager{
 		if(isTimeForPlantGrowth()){
 			timeBeforeNextGrowth = GameConfig.instance().GROWTH_TIME;
 			growPlants(delta);
+		}
+		if(marker == 0){
+			if(getEntities().size() > 600){
+				TweetManager.instance().updateStatus(TweetMessageFactory.generateUpdateStatus(601));
+				marker = 1;			
+			}
+		}else if(marker == 1){
+			if(getEntities().size() > 750){
+				TweetManager.instance().updateStatus(TweetMessageFactory.generateUpdateStatus(751));
+				marker = 2;			
+			}
+		}else if(marker == 2){
+			if(getEntities().size() > 1000){
+				TweetManager.instance().updateStatus(TweetMessageFactory.generateUpdateStatus(1001));
+				marker = 3;			
+			}
 		}
 	}
 	
