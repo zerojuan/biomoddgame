@@ -63,6 +63,11 @@ public class GameConfigIO {
 			GameConfig.instance().BLOCK_LIFE = Integer.parseInt(n.getTextContent().trim());
 		}else if(n.getNodeName().equals("territoryLife")){
 			GameConfig.instance().TERRITORY_LIFE = Integer.parseInt(n.getTextContent().trim());
+		}else if(n.getNodeName().equals("httpProxy")){
+			GameConfig.instance().HTTP_PROXY = (n.getTextContent().trim());
+		}else if(n.getNodeName().equals("httpPort")){
+			if(!n.getTextContent().trim().equals("none"))
+				GameConfig.instance().HTTP_PROXY_PORT= Integer.parseInt(n.getTextContent().trim());
 		}
 	}
 }

@@ -51,7 +51,7 @@ public class CollisionManager {
 		return null;
 	}
 	
-	public boolean isCollideWithPlant(Enemy e, PlantsGrid plantsGrid){
+	public boolean isCollideWithPlant(Entity e, PlantsGrid plantsGrid){
 		int cenX = (int)Math.floor(e.getXPos()/20);
 		int cenY = (int)Math.floor(e.getYPos()/20);
 		if(cenX < 0 || cenX >= plantsGrid.getColumns())

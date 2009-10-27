@@ -47,6 +47,7 @@ public class Client extends Component{
 	public void login(Properties properties) {
 		try {
 			Log.debug("Logging in..");
+			Log.debug(properties.toString());
 			this.connection.login(properties);
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -39,13 +39,13 @@ public class BiomoddGame extends StateBasedGame implements IComponent{
 		this.addState(loginState);
 		this.addState(gamePlayState);			
 		
-		this.enterState(LOGINSTATE, new EmptyTransition(), new FadeInTransition(Color.black, 1000));
-		
+		this.enterState(LOGINSTATE, new EmptyTransition(), new FadeInTransition(Color.black, 1000));		
 		Log.setVerbose(false);
 	}
 
 	@Override
 	public void initStatesList(GameContainer container) throws SlickException {
+		container.setShowFPS(false);
 		this.getState(LOGINSTATE).init(container, this);
 		this.getState(GAMEPLAYSTATE).init(container, this);	
 	}	
@@ -83,7 +83,7 @@ public class BiomoddGame extends StateBasedGame implements IComponent{
 	        }
 	        
 			AppGameContainer app = new AppGameContainer(game);
-			app.setDisplayMode(800, 600, false);
+			app.setDisplayMode(800, 600, true);
 			app.start();
 		}catch(SlickException e){
 			e.printStackTrace();

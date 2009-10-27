@@ -4,8 +4,10 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.Sound;
+import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.particles.ConfigurableEmitter;
 import org.newdawn.slick.particles.ParticleSystem;
@@ -16,12 +18,14 @@ import com.biomodd.entity.Enemy;
 import com.biomodd.entity.PlantsGrid;
 import com.biomodd.entity.Player;
 import com.biomodd.entity.WarningSign;
+import com.biomodd.input.Controller;
 import com.biomodd.manager.ArtManager;
 import com.biomodd.manager.BlocksManager;
 import com.biomodd.manager.EnemyManager;
 import com.biomodd.manager.ParticleEffectsManager;
 import com.biomodd.manager.PlantsManager;
 import com.biomodd.manager.TerritoryManager;
+import com.biomodd.manager.TweetManager;
 import com.biomodd.task.manager.TaskManager;
 import com.biomodd.util.EImgType;
 import com.biomodd.util.ESndType;
@@ -38,7 +42,8 @@ public class GameplayState extends BasicGameState{
 	private Image backgroundImage;
 	private Image centerImage;
 	
-	private Player player;
+	private Player player1;
+	private Player player2;
 	private PlantsGrid plantsGrid;
 	private WarningSign warningSign;
 
@@ -53,6 +58,8 @@ public class GameplayState extends BasicGameState{
 	private ParticleSystem explosionSystem;
 	private ConfigurableEmitter explosionEmitter;
 	
+	private float angryWorld = 0f;
+	
 	public GameplayState(int stateID){
 		this.stateID = stateID;
 	}
@@ -63,35 +70,40 @@ public class GameplayState extends BasicGameState{
 	}
 	
 	public void setPlayerId(int id){
-		if(player == null){
-			player = new Player(id+"", 500f,500f,0f,0f,1);			
+		if(player1 == null){
+			player1 = new Player(id+"", 500f,500f,0f,0f,1);			
 		}
-		player.setId(""+id);
+		player1.setId(""+id);
 	}
 
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
-		ArtManager.instance();
+			throws SlickException {		
 		PlantsManager.instance();
 		EnemyManager.instance();
 		BlocksManager.instance();
 		TerritoryManager.instance();
 		ParticleEffectsManager.instance();
-		
+		//We no longer initialize our task manager because it is already initialized on the login state
 		GameConfigIO.loadConfig("assets/config.xml");			
 		
 		
-		timeBeforeNextWave = GameConfig.instance().WAVE_TIME;
-		
+		timeBeforeNextWave = GameConfig.instance().WAVE_TIME;			
 		
 		
 		rotationCenter = 0;
 		
 		isWaveSet = false;
 
+		Controller player1Controller = new Controller(Input.KEY_I, Input.KEY_K, Input.KEY_J, Input.KEY_L, Input.KEY_Z, Input.KEY_X);
+		Controller player2Controller = new Controller(Input.KEY_UP, Input.KEY_DOWN, Input.KEY_LEFT, Input.KEY_RIGHT, Input.KEY_RSHIFT, Input.KEY_RCONTROL);
 		
-		player = new Player("1", 500f,500f,0f,0f,1);
+		
+		player1 = new Player("0", 250f, 250f, 0f, 0f, 0);
+		player2 = new Player("1", 500f,250f,0f,0f,1);
+		player1.setController(player1Controller);
+		player2.setController(player2Controller);
+		
 		warningSign = new WarningSign("warning", 0, 0,ArtManager.instance().getImage(EImgType.WARNING));
 		backgroundImage = ArtManager.instance().getImage(EImgType.BACKGROUND);
 		centerImage = ArtManager.instance().getImage(EImgType.CENTER);
@@ -103,8 +115,10 @@ public class GameplayState extends BasicGameState{
 	@Override
 	public void render(GameContainer gc, StateBasedGame sb, Graphics gr)
 			throws SlickException {
-		backgroundImage.draw(0,0, gc.getWidth(), gc.getHeight());
 		
+		backgroundImage.draw(0,0, gc.getWidth(), gc.getHeight());
+		gr.setColor(new Color(.5f, .5f, .5f, angryWorld));
+		gr.fill(new Rectangle(0,0, gc.getWidth(), gc.getHeight()));
 		TerritoryManager.instance().render(gc, sb, gr);
 		
 		PlantsManager.instance().render(gc, sb, gr);
@@ -135,7 +149,8 @@ public class GameplayState extends BasicGameState{
 		
 		EnemyManager.instance().render(gc, sb, gr);
 		
-		player.render(gc, sb, gr);
+		player1.render(gc, sb, gr);
+		player2.render(gc, sb, gr);
 		//g.fill(player.getBounds());
 		if(warningSign.visible()){			
 			warningSign.render(gc, sb, gr);
@@ -147,9 +162,10 @@ public class GameplayState extends BasicGameState{
 		g.drawString("Time Since Type Change: " + timeSinceTypeChange, 10, 100);
 		g.drawString("Time Before Next Wave: " + timeBeforeNextWave, 10, 140);*/
 		
-		gr.drawString("Can Do Skill: " + ((player.getTimeSinceSkillMove() >= GameConfig.instance().SKILL_MOVE) ? "Yes":"No"), 10, 60);
-		gr.drawString("Can Change Type: " + ((player.getTimeSinceTypeChange() >= GameConfig.instance().TYPE_CHANGE) ? "Yes":"No"), 10, 80);
-		gr.drawString("Time Before Next Wave: " + (timeBeforeNextWave/1000), 10, 100);
+		//gr.drawString("Can Do Skill: " + ((player1.getTimeSinceSkillMove() >= GameConfig.instance().SKILL_MOVE) ? "Yes":"No"), 10, 60);
+		//gr.drawString("Can Change Type: " + ((player1.getTimeSinceTypeChange() >= GameConfig.instance().TYPE_CHANGE) ? "Yes":"No"), 10, 80);
+		TweetManager.instance().render(gc, sb, gr);
+		gr.drawString("Time Before Next Wave: " + (timeBeforeNextWave/1000), 10, 20);
 		
 	}
 
@@ -159,7 +175,20 @@ public class GameplayState extends BasicGameState{
 		
 		timeBeforeNextWave -= delta;
 		
-		
+		if(TweetManager.instance().isMad()){
+			if(angryWorld < .7){
+				angryWorld += .05f;
+				if(angryWorld > .7f)
+					angryWorld = .7f;
+			}
+		}else{
+			if(angryWorld > 0f){
+				angryWorld -= .05f;
+				if(angryWorld < 0f){
+					angryWorld = 0f;
+				}
+			}
+		}
 		//particleSystem.update(delta);			
 		
 		if(isWaveNear()){
@@ -173,8 +202,17 @@ public class GameplayState extends BasicGameState{
 			sendWave(gc);
 		}
 		
-		player.update(gc, sb, delta);
+		Input in = gc.getInput();
+		
+		
+		if(in.isKeyPressed(Input.KEY_ESCAPE)){
+			System.exit(0);
+		}
+		
+		player1.update(gc, sb, delta);
+		player2.update(gc, sb, delta);
 		TaskManager.getInstance().update();
+		TweetManager.instance().update(gc, sb, delta);
 		PlantsManager.instance().update(gc, sb, delta);
 		EnemyManager.instance().update(gc, sb, delta);
 		BlocksManager.instance().update(gc, sb, delta);
@@ -224,7 +262,14 @@ public class GameplayState extends BasicGameState{
 			cartesianPoint = MathUtil.polarToCartesian(polarCoord);
 			EnemyManager.instance().addEntity(id, new Enemy(id, center.x + cartesianPoint.x, center.y - cartesianPoint.y, 0,0, enemyImage));
 		}
-
+		if(angryWorld > 0f){
+			for(int i = 0; i < 5; i++){
+				String id = System.currentTimeMillis() + "" + i + "x";
+				polarCoord = new PointF(900f + (float)(Math.random()*100), waveDirection - (i*5));
+				cartesianPoint = MathUtil.polarToCartesian(polarCoord);
+				EnemyManager.instance().addEntity(id, new Enemy(id, center.x + cartesianPoint.x, center.y - cartesianPoint.y, 0,0, enemyImage));
+			}
+		}		
 	}
 	
 	private boolean isWaveNear(){

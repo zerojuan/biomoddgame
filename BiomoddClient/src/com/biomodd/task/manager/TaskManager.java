@@ -131,6 +131,7 @@ public class TaskManager {
 	 */
 	public ITask createTask(ETask enumn, Object... args) {
 		ITask task = null;
+		Log.info("Creating " + enumn + " task");
 		switch(enumn){
 			case Authenticate: 				
 				task = new AuthenticateTask(this.game, (String)args[0], (String)args[1], (String)args[2], (String)args[3]);

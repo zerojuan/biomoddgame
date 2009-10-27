@@ -5,17 +5,19 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Font;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.TrueTypeFont;
 import org.newdawn.slick.gui.TextField;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.util.Log;
 
-import com.biomodd.task.ETask;
+import com.biomodd.manager.ArtManager;
 import com.biomodd.task.manager.TaskManager;
+import com.biomodd.util.EImgType;
 import com.biomodd.util.EInputState;
+import com.biomodd.util.GameConfig;
 
 public class LoginState extends BasicGameState{
 
@@ -36,7 +38,7 @@ public class LoginState extends BasicGameState{
 	
 	private String statMessage;
 	
-	
+	private Image backgroundImg;
 	
 	public LoginState(int stateID){
 		this.stateID = stateID;
@@ -50,10 +52,11 @@ public class LoginState extends BasicGameState{
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {		
+		ArtManager.instance();
 		textFont = new TrueTypeFont(new java.awt.Font("Arial", java.awt.Font.PLAIN, 12),true);
 		
 		status = EInputState.ACTIVE;		
-		statMessage = "Press enter to connect..";
+		statMessage = "Please input your names..";
 		
 		userName = new TextField(container, textFont, container.getWidth()/2, container.getHeight()/2, 100, 20);
 		password = new TextField(container, textFont, container.getWidth()/2, container.getHeight()/2+30, 100, 20);
@@ -72,39 +75,35 @@ public class LoginState extends BasicGameState{
 		
 		port.setTextColor(Color.black);
 		port.setBackgroundColor(Color.white);
-		port.setText("8070");
+		port.setText("1139");
 		
 		userName.setAcceptingInput(true);
 		password.setAcceptingInput(true);
 		host.setAcceptingInput(true);
 		port.setAcceptingInput(true);
 		userName.setFocus(true);		
+		
+		backgroundImg = ArtManager.instance().getImage(EImgType.BACKGROUND);
 	}
 
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
-			throws SlickException {
-		textFont.drawString(container.getWidth()/2 - 70, container.getHeight()/2-60, "Host:", Color.white);
-		textFont.drawString(container.getWidth()/2 - 70, container.getHeight()/2-30, "Port:", Color.white);
-		textFont.drawString(container.getWidth()/2 - 70, container.getHeight()/2, "Username:", Color.white);
-		textFont.drawString(container.getWidth()/2 - 70, container.getHeight()/2+30, "Password:", Color.white);
+			throws SlickException {		
+		backgroundImg.draw(0,0, container.getWidth(), container.getHeight());
+		textFont.drawString(container.getWidth()/2 - 70, container.getHeight()/2, "Player 1:", Color.white);
+		textFont.drawString(container.getWidth()/2 - 70, container.getHeight()/2+30, "Player 2:", Color.white);
 		
 		userName.render(container, g);
 		password.render(container, g);
-		host.render(container, g);
-		port.render(container, g);
+		//host.render(container, g);
+		//port.render(container, g);
 		
 		textFont.drawString(container.getWidth()/2 - 70, container.getHeight()/2+60, statMessage, Color.gray);
 		
-		g.drawString("If you can read this the game works.", 200, 100);
-		g.drawString("Astig. But there is still a lot to do young padawan.", 200, 120);
-		g.drawString("This is not the kewlest game yet. This is just a phase.", 200, 140);
-		g.drawString("Help this become beautiful..", 200, 160);
-		g.drawString("Suggestions and feedback are important to success.", 230, 200);
-		g.drawString("-- The Management", 550, 220);
 		
-		g.drawString("Seriously though. Feedback!", 600, 500);
-		g.drawString("juliuscebreros@gmail.com",620, 520);
+		
+		g.drawString("Brought to you by:", 600, 500);
+		g.drawString("The Biomodd[LBA2] Game Team",520, 520);
 		
 	}
 
@@ -123,11 +122,14 @@ public class LoginState extends BasicGameState{
 			}
 			
 			if(in.isKeyDown(Input.KEY_ENTER)){
-				TaskManager.getInstance().createTask(ETask.Authenticate, 
+				//TODO: uncomment this if you want multiplayer
+				/*TaskManager.getInstance().createTask(ETask.Authenticate, 
 						userName.getText(),
 						password.getText(),
 						host.getText(),
-						port.getText());
+						port.getText());*/
+				GameConfig.instance().PLAYER_NAME1 = userName.getText();
+				GameConfig.instance().PLAYER_NAME2 = password.getText();
 				game.enterState(BiomoddGame.GAMEPLAYSTATE);
 			}
 		}else{						
@@ -154,7 +156,7 @@ public class LoginState extends BasicGameState{
 	private void changeFocus(){
 		currentActive++;
 		if(currentActive > 3){
-			currentActive = 0;
+			currentActive = 2;
 		}
 		switch(currentActive){
 			case 0: host.setFocus(true);
@@ -164,6 +166,7 @@ public class LoginState extends BasicGameState{
 					port.setFocus(true);
 					break;
 			case 2: port.setFocus(false);
+					password.setFocus(false);
 					userName.setFocus(true);
 					break;
 			case 3: userName.setFocus(false);

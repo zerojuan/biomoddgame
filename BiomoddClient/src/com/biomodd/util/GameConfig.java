@@ -39,8 +39,11 @@ public class GameConfig {
 	public int ENEMY_DAMAGE = 20;
 	
 	public int TERRITORY_LIFE = 5000;
+	public String HTTP_PROXY = "none";
+	public int HTTP_PROXY_PORT = 0;
 	
-	
+	public String PLAYER_NAME1 = "Player1";
+	public String PLAYER_NAME2 = "Player2";
 	
 	
 }
